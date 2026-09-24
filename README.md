@@ -9,7 +9,7 @@ sanitised or rebuilt versions, each one runnable in a single command.
 
 ---
 
-**[linux-control-plane](https://github.com/eranoix/linux-control-plane)** · Go, Kotlin, ~45k LOC
+**[linux-control-plane](https://github.com/eranoix/linux-control-plane)** · Go, Kotlin · ~215k lines, ~300k with tests
 
 A single static binary that replaces SSH, a terminal multiplexer, `docker`,
 `crontab` and `journalctl` with one page — plus a native Android client with
@@ -56,28 +56,30 @@ is a confident sentence about a job that never happened.
 
 ### Languages, and where they actually are
 
-Counted by GitHub across the repositories above — not a list of things I have
-read about. The link goes to the code.
+Sixteen, counted by GitHub across the five repositories above — not a list of
+things I have read about. Every figure below is what `api.github.com/repos/…/languages`
+returns for a public repo, so it can be checked without taking my word for it.
+The link goes to the code.
 
 | | Where | What it does there |
 |---|---|---|
-| **Go** | [control-plane](https://github.com/eranoix/linux-control-plane) | 81 packages, `net/http`, no framework. 45% of that repo |
+| **Go** | [control-plane](https://github.com/eranoix/linux-control-plane) | 65 packages, almost all of it bare `net/http`. 45% of that repo |
 | **Kotlin** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android) | Android client: Compose UI and a VT terminal engine |
-| **TypeScript** | [gateway](https://github.com/eranoix/llm-protocol-gateway) · [queue](https://github.com/eranoix/durable-op-queue) · [scheduling](https://github.com/eranoix/scheduling-engine) | Strict mode, three separate services |
+| **TypeScript** | [gateway](https://github.com/eranoix/llm-protocol-gateway) · [queue](https://github.com/eranoix/durable-op-queue) · [scheduling](https://github.com/eranoix/scheduling-engine) | Strict mode: one gateway service and two libraries |
 | **JavaScript** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | Alpine panel, React app, and browser tests driven over CDP |
 | **SQL** | [gateway](https://github.com/eranoix/llm-protocol-gateway/tree/main/src/storage/migrations) · [queue](https://github.com/eranoix/durable-op-queue/blob/main/src/schema.ts) | Schema by hand — including the unique index the queue's guarantee rests on |
-| **HTML / CSS** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | One Alpine template is the whole panel; the forms app is print-exact CSS |
+| **HTML / CSS** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | One Alpine template *is* the whole panel; the hand-written CSS is the forms app's print-exact sheets — the panel's is generated Tailwind, and does not count |
 | **Python** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · [forms](https://github.com/eranoix/offshore-competency-forms/blob/main/worker/ocr.py) | Document OCR, a VT session replayer, structure checks |
 | **C++** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android/terminal-engine/src/main/cpp) | JNI bridge from Kotlin into a native VT parser |
-| **Shell** | all five | Build, release, and test harnesses that run in CI |
+| **Shell** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · gateway · forms | 40 build, release and test harnesses; a credential backup under `flock` |
 
 Plus the build and config layer, which is real work even when it does not look
-like a language: Gradle Kotlin DSL (a 15-module composite build), Dockerfile,
+like a language: Gradle Kotlin DSL (a 17-module composite build), Dockerfile,
 Makefile, CMake, Android XML, Go templates.
 
 The percentages are honest in both directions. The vendored copies of Monaco,
 xterm.js, zstd and HDiffPatch that ship in-tree are marked as third-party and
-excluded — that is 19 MB of JavaScript and 2.2 MB of C I do not claim.
+excluded — that is 19 MB of JavaScript and 2.3 MB of C I do not claim.
 
 ---
 
