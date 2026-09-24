@@ -54,6 +54,33 @@ is a confident sentence about a job that never happened.
 
 ---
 
+### Languages, and where they actually are
+
+Counted by GitHub across the repositories above — not a list of things I have
+read about. The link goes to the code.
+
+| | Where | What it does there |
+|---|---|---|
+| **Go** | [control-plane](https://github.com/eranoix/linux-control-plane) | 81 packages, `net/http`, no framework. 45% of that repo |
+| **Kotlin** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android) | Android client: Compose UI and a VT terminal engine |
+| **TypeScript** | [gateway](https://github.com/eranoix/llm-protocol-gateway) · [queue](https://github.com/eranoix/durable-op-queue) · [scheduling](https://github.com/eranoix/scheduling-engine) | Strict mode, three separate services |
+| **JavaScript** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | Alpine panel, React app, and browser tests driven over CDP |
+| **SQL** | [gateway](https://github.com/eranoix/llm-protocol-gateway/tree/main/src/storage/migrations) · [queue](https://github.com/eranoix/durable-op-queue/blob/main/src/schema.ts) | Schema by hand — including the unique index the queue's guarantee rests on |
+| **HTML / CSS** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | One Alpine template is the whole panel; the forms app is print-exact CSS |
+| **Python** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · [forms](https://github.com/eranoix/offshore-competency-forms/blob/main/worker/ocr.py) | Document OCR, a VT session replayer, structure checks |
+| **C++** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android/terminal-engine/src/main/cpp) | JNI bridge from Kotlin into a native VT parser |
+| **Shell** | all five | Build, release, and test harnesses that run in CI |
+
+Plus the build and config layer, which is real work even when it does not look
+like a language: Gradle Kotlin DSL (a 15-module composite build), Dockerfile,
+Makefile, CMake, Android XML, Go templates.
+
+The percentages are honest in both directions. The vendored copies of Monaco,
+xterm.js, zstd and HDiffPatch that ship in-tree are marked as third-party and
+excluded — that is 19 MB of JavaScript and 2.2 MB of C I do not claim.
+
+---
+
 **Working on:** Go · TypeScript · Kotlin + Compose · SQLite / Postgres · Docker ·
 Linux · WebRTC · protocol translation · anything with a hard concurrency edge
 
