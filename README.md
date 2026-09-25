@@ -47,6 +47,7 @@ Competency paperwork with retrieval-augmented drafting under a strict contract:
 one mode takes your writing voice and *no* facts from the retrieved passages,
 the other may state nothing that is not in them. The failure worth preventing
 is a confident sentence about a job that never happened.
+
 **[durable-op-queue](https://github.com/eranoix/durable-op-queue)** · TypeScript
 
 Exactly-once effects against systems you do not control. The hard case is the
