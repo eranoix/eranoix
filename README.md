@@ -41,6 +41,12 @@ directory name carried a tracker key while every file inside it was clean. The
 example ships leaking on purpose: the first run refuses, the README says which
 line fixes it, and CI asserts the refusal still happens.
 
+**[offshore-competency-forms](https://github.com/eranoix/offshore-competency-forms)** · React, Vite
+
+Competency paperwork with retrieval-augmented drafting under a strict contract:
+one mode takes your writing voice and *no* facts from the retrieved passages,
+the other may state nothing that is not in them. The failure worth preventing
+is a confident sentence about a job that never happened.
 **[durable-op-queue](https://github.com/eranoix/durable-op-queue)** · TypeScript
 
 Exactly-once effects against systems you do not control. The hard case is the
@@ -56,12 +62,6 @@ Availability rules, recurrence and conflict-free booking. Days are not always
 availability is advice while the write is the authority — the conflict check
 lives inside the transaction, not in the code that ran a moment earlier.
 
-**[offshore-competency-forms](https://github.com/eranoix/offshore-competency-forms)** · React, Vite
-
-Competency paperwork with retrieval-augmented drafting under a strict contract:
-one mode takes your writing voice and *no* facts from the retrieved passages,
-the other may state nothing that is not in them. The failure worth preventing
-is a confident sentence about a job that never happened.
 
 ---
 
