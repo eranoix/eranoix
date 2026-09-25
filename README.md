@@ -1,6 +1,6 @@
 ### Backend and systems engineer — Go, Kotlin, TypeScript, Python
 
-**Remote from Brazil. Open to backend and systems roles.** · [arthurrhuan39@gmail.com](mailto:arthurrhuan39@gmail.com)
+**Remote from Brazil. Open to backend and systems roles.**
 
 I build the part that has to hold when something else has already failed.
 
