@@ -1,0 +1,50 @@
+name: Refresh banner
+
+# The status line in the banner is counted, not typed: projects, languages and
+# the latest update come from the GitHub API. This redraws it every day, and
+# commits only when something actually changed.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/banner.py
+      - .github/workflows/banner.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: banner
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Redraw from the API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Written to a temporary file first: if the script fails halfway, the
+        # banner that is already published stays intact.
+        run: |
+          python3 scripts/banner.py > /tmp/banner.svg
+          mv /tmp/banner.svg assets/banner.svg
+
+      - name: Commit if it changed
+        run: |
+          if git diff --quiet -- assets/banner.svg; then
+            echo "banner unchanged"; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/banner.svg
+          git commit -m "chore: refresh banner status line"
+          git push

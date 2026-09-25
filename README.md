@@ -1,101 +1,220 @@
-### Backend and systems engineer — Go, Kotlin, TypeScript, Python
+<img src="assets/banner.svg" alt="Arthur Oliveira, full-stack engineer" width="100%">
 
-**Remote from Brazil. Open to backend and systems roles.**
+Hi, I'm Arthur. I'm a full-stack developer, and I work remotely.
 
-I build the part that has to hold when something else has already failed.
+Most of what you'll find here started as a small irritation I couldn't let go of. A server I had to babysit from my phone. Paperwork that ate people's evenings. Tools that wouldn't talk to each other. I'd notice it, then keep noticing it, until building something was easier than living with it.
 
----
+I enjoy the part people see: making a screen feel obvious. But I get just as much out of the part they don't. A server restarts in the middle of the night and nobody notices. A payment goes through exactly once. An app keeps working after the signal is gone.
 
-### Things that broke, and what I built about them
+**Open to remote full-stack roles.**
 
-**A minified bundle kept a production address alive after I had already fixed
-the source.** The bundle was a second copy of that source, and the scanner was
-only reading sources. → [publication-gate](https://github.com/eranoix/publication-gate)
-reads the *output* tree, and the file path as well as the content — a directory
-name once carried a ticket key while every file inside it was clean.
+### What I've built, and why
 
-**Restarting the panel killed whatever was running in it.**
-→ [linux-control-plane](https://github.com/eranoix/linux-control-plane) detaches
-terminal sessions from the process that serves them, so a restart costs you
-nothing and reattaching replays the live screen.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-**Opening that panel on my phone shrank the session on my desktop.**
-→ Rendering is per client now: two people watching one session each get output
-composed for their own window.
+**[server-control-panel](https://github.com/eranoix/server-control-panel)**<br>
+<sub>Go · Kotlin · Alpine.js</sub>
 
-**Two processes noticed a shared token had expired at the same moment, both
-refreshed, and the last writer won.**
-→ [llm-protocol-gateway](https://github.com/eranoix/llm-protocol-gateway):
-single-flight inside the process, a lock between processes, and a re-read of the
-file *inside* that lock. The re-read is the layer people skip.
+**A web and phone dashboard to look after a Linux server without living in the terminal.**
 
-**A process died between the charge going through and the record of it.**
-Retry and you charge twice; skip it and the work is lost quietly.
-→ [durable-op-queue](https://github.com/eranoix/durable-op-queue): the handler
-has to report whether **it** made the change or found it already done, and the
-database, not the application, refuses the duplicate.
+**Why I built it.** Looking after my own server meant a dozen terminal windows, and the worst moments were when something broke and all I had was my phone.
 
-**Two people booked the same slot four seconds apart**, because the check that
-said it was free had run a moment earlier.
-→ [scheduling-engine](https://github.com/eranoix/scheduling-engine) runs that
-check inside the same transaction as the insert.
+<sub>**WHAT YOU SEE**</sub><br>
+One panel for everything on the server: apps, logs, files, scheduled jobs and a terminal. In the browser, or in an Android app made for thumbs.
 
----
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+A single Go program. If it restarts, your open terminal is still there when it comes back.
 
-### The six
+</td>
+<td width="50%" valign="top">
 
-- **[linux-control-plane](https://github.com/eranoix/linux-control-plane)** — Linux server administration in one binary, plus a native Android client with its own VT terminal engine · Go, Kotlin · ~215k lines
-- **[publication-gate](https://github.com/eranoix/publication-gate)** — derives a public repository from a private one, and refuses to publish when a check fails · Python
-- **[llm-protocol-gateway](https://github.com/eranoix/llm-protocol-gateway)** — OpenAI and Anthropic shapes on one endpoint, both directions, streaming included · TypeScript, SQL
-- **[offshore-competency-forms](https://github.com/eranoix/offshore-competency-forms)** — signed paperwork written at sea, where the connection drops and does not come back · JavaScript, Python
-- **[durable-op-queue](https://github.com/eranoix/durable-op-queue)** — exactly-once effects against systems you do not control · TypeScript
-- **[scheduling-engine](https://github.com/eranoix/scheduling-engine)** — availability, recurrence and booking that cannot collide · TypeScript
+**[offshore-report-app](https://github.com/eranoix/offshore-report-app)**<br>
+<sub>React · Node · Python</sub>
 
-I run my own server, and a fair amount of what I know came from having to fix it
-myself at a bad hour — the first project above started exactly there. Nearly
-everything else I build runs in production and is not mine to publish, so these
-are sanitised copies or smaller rebuilds. Each runs with a single command, and
-each README starts with the problem before it gets to the feature list.
+**An app that fills in and prints the reports offshore technicians have to write, even with no internet.**
 
----
+**Why I built it.** After a long shift at sea, technicians still have to write long, repetitive reports, on a ship where the internet comes and goes.
 
-### Languages, and where they actually are
+<sub>**WHAT YOU SEE**</sub><br>
+Fill in the form on the phone, print it exactly like the official one, and get help writing it in your own words.
 
-Sixteen, counted by GitHub across the six repositories above — not a list of
-things I have read about. Every figure below is what `api.github.com/repos/…/languages`
-returns for a public repo, so it can be checked without taking my word for it.
-The link goes to the code.
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+It works offline, and the writing help can only use what the person actually said. Nobody should sign a report about a job that never happened.
 
-| | Where | What it does there |
-|---|---|---|
-| **Go** | [control-plane](https://github.com/eranoix/linux-control-plane) | 65 packages, almost all of it bare `net/http`. 45% of that repo |
-| **Kotlin** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android) | Android client: Compose UI and a VT terminal engine |
-| **TypeScript** | [gateway](https://github.com/eranoix/llm-protocol-gateway) · [queue](https://github.com/eranoix/durable-op-queue) · [scheduling](https://github.com/eranoix/scheduling-engine) | Strict mode: one gateway service and two libraries |
-| **JavaScript** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | Alpine panel, React app, and browser tests driven over CDP |
-| **SQL** | [gateway](https://github.com/eranoix/llm-protocol-gateway/tree/main/src/storage/migrations) · [queue](https://github.com/eranoix/durable-op-queue/blob/main/src/schema.ts) | Schema by hand — including the unique index the queue's guarantee rests on |
-| **HTML / CSS** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | One Alpine template *is* the whole panel; the hand-written CSS is the forms app's print-exact sheets — the panel's is generated Tailwind, and does not count |
-| **Python** | [publication-gate](https://github.com/eranoix/publication-gate/tree/main/lib) · [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · [forms](https://github.com/eranoix/offshore-competency-forms/blob/main/worker/ocr.py) | The publication pipeline and its gates; document OCR; a VT session replayer |
-| **C++** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android/terminal-engine/src/main/cpp) | JNI bridge from Kotlin into a native VT parser |
-| **Shell** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · gateway · forms | 40 build, release and test harnesses; a credential backup under `flock` |
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-Plus the build and config layer, which is real work even when it does not look
-like a language: Gradle Kotlin DSL (a 17-module composite build), Dockerfile,
-Makefile, CMake, Android XML, Go templates.
+**[ai-api-bridge](https://github.com/eranoix/ai-api-bridge)**<br>
+<sub>TypeScript · SQL</sub>
 
-The percentages are honest in both directions. The vendored copies of Monaco,
-xterm.js, zstd and HDiffPatch that ship in-tree are marked as third-party and
-excluded — that is 19 MB of JavaScript and 2.3 MB of C I do not claim.
+**A bridge that lets a program written for one AI API talk to another, without changing its code.**
 
----
+**Why I built it.** I had tools I liked that only worked with one AI provider, and I wanted to use them with another one.
 
-**Day to day:** Go · Kotlin + Compose · TypeScript · Python · JavaScript · SQL ·
-Bash · C++ at the JNI boundary · HTML and hand-written CSS · Gradle · Docker ·
-Linux · SQLite and Postgres · WebRTC
+<sub>**WHAT YOU SEE**</sub><br>
+The tools keep working as they are. The bridge translates in the middle, and a small dashboard shows who is using what.
 
-**Drawn to:** protocol translation, idempotency, time zones and recurrence,
-terminal internals — anything with a hard concurrency edge or a contract that
-has to hold while something else is failing.
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+When several processes renew the same login at the same moment, only one does it and the others wait for the result.
 
-**Open to:** remote backend and systems roles. If you want to see how I think
-before you talk to me, the comments in these repositories say which defect each
-decision came from.
+</td>
+<td width="50%" valign="top">
+
+**[safe-code-publisher](https://github.com/eranoix/safe-code-publisher)**<br>
+<sub>Python</sub>
+
+**Publishes a clean copy of a private project and refuses if any personal data is left in it.**
+
+**Why I built it.** Most of my work is private and full of names, addresses and passwords. Cleaning it by hand every time is how leaks happen.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Nothing, on purpose. It builds the public copy and says no while anything sensitive is still inside. Every project on this page went through it.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+The check runs on the finished copy, not on the original, so nothing can slip in between.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**[reliable-task-queue](https://github.com/eranoix/reliable-task-queue)**<br>
+<sub>TypeScript · SQL</sub>
+
+**A task queue that makes sure each job, like a payment, happens exactly once, even when something crashes.**
+
+**Why I built it.** Imagine the app freezing while you pay, and nobody knowing if you were charged. Someone has to decide whether to try again.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Nothing, and that's the point. When it works, nobody knows it exists.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+The database itself refuses to record the same action twice. It's a small, open version of a system I built for production.
+
+</td>
+<td width="50%" valign="top">
+
+**[clinic-booking-app](https://github.com/eranoix/clinic-booking-app)**<br>
+<sub>Next.js · React · TypeScript · SQL</sub>
+
+**Online booking for a clinic, with a page for patients and a front desk for staff.**
+
+**Why I built it.** Two people book the same time seconds apart, and someone ends up making an awkward phone call.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Patients pick a time and can change or cancel it from a link. Staff see the day's diary, move appointments and book a whole course of sessions at once.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+A double booking is simply impossible: the check happens at the exact moment of booking. One command runs it all, with invented data.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**[kids-study-app](https://github.com/eranoix/kids-study-app)**<br>
+<sub>Electron · TypeScript · PowerShell</sub>
+
+**A study app for kids: practice tests at the right level, stories read aloud, and flashcards.**
+
+**Why I built it.** I wanted my kids to practise at exactly their level, and to have books read aloud with them when I couldn't.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Each child gets tests for their grade, stories read aloud with every word highlighted, and flashcards for what they got wrong. Parents see how everyone is doing.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+Progress is encrypted on the computer, and syncing two computers never makes anyone's progress go backwards.
+
+</td>
+<td width="50%" valign="top">
+
+**[phone-notes-sync](https://github.com/eranoix/phone-notes-sync)**<br>
+<sub>TypeScript · PostgreSQL</sub>
+
+**Copies the notes you write on your phone into a database within seconds.**
+
+**Why I built it.** My phone notes were stuck on the phone. Every time another tool needed them, I copied them by hand.
+
+<sub>**WHAT YOU SEE**</sub><br>
+A page with all your notes, updating live as you write, edit or delete them on the phone.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+If the connection drops it reconnects on its own, and it never mistakes an edit for a deletion.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**[server-fan-control](https://github.com/eranoix/server-fan-control)**<br>
+<sub>Python · JavaScript</sub>
+
+**Sets a server's fan speeds from the temperatures that matter, and runs every fan at full speed if anything fails.**
+
+**Why I built it.** My home server was either too loud to sleep near or quietly running too hot.
+
+<sub>**WHAT YOU SEE**</sub><br>
+A live dashboard with temperatures and fan speeds, and curves you drag into shape. A built-in simulator lets it run on any computer.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+If a sensor stops answering, or the program itself crashes, the fans go to full speed. It prefers noise to heat.
+
+</td>
+<td width="50%" valign="top">
+
+**[server-config-checker](https://github.com/eranoix/server-config-checker)**<br>
+<sub>Shell · Docker</sub>
+
+**Checks that servers are still set up the way they should be, and shows exactly what changed.**
+
+**Why I built it.** Settings that live outside any repository change without anyone noticing, until something breaks at a bad hour.
+
+<sub>**WHAT YOU SEE**</sub><br>
+A short report: green when everything matches, and a clear list of what changed when it doesn't.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+It only reads, never writes. Passwords are compared by name, so their values never leave the server.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**[receipt-organizer](https://github.com/eranoix/receipt-organizer)**<br>
+<sub>Next.js · React · TypeScript · SQL</sub>
+
+**Reads the receipts and bills you drop into a cloud drive folder, files them, catches duplicates and tracks what has been paid.**
+
+**Why I built it.** Hundreds of receipts a month landed in a cloud drive and were filed by hand. The filing was boring. The dangerous part was a copy deleted by mistake, or a move that failed six times in a row without anyone noticing.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Each receipt already read: who was paid, how much and when, with a suggested folder and how sure the app is. You confirm with one click, and your bills show as paid, open or late.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+Nothing is moved, deleted or paid unless a person says so. A duplicate is proven byte by byte before it goes, and every change to the drive is safe to retry.
+
+</td>
+<td width="50%" valign="top">
+
+**[consultant-workspace](https://github.com/eranoix/consultant-workspace)**<br>
+<sub>Next.js · React · TypeScript · SQL</sub>
+
+**Turns a consultant's meetings and emails into tasks she approves, with a task board, a weekly timesheet and alerts in one place.**
+
+**Why I built it.** I built it for a consultant whose notes, emails and tasks lived in four places, and whose timesheet was rebuilt from memory every Friday night.
+
+<sub>**WHAT YOU SEE**</sub><br>
+Meetings and emails become short summaries with suggested tasks. She approves the right ones, drags her week into a timesheet and copies it to her calendar in one click.
+
+<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
+Nothing reaches the board without her approval. Every scheduled job reports that it is alive, and a second job watches the one that watches the others.
+
+</td>
+</tr>
+</table>
+
+If one of these sounds like a problem your team has right now, I'd really like to hear about it.
