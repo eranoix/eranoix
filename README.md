@@ -1,11 +1,13 @@
-### Backend and systems engineer — Go, TypeScript, Kotlin
+### Backend and systems engineer — Go, Kotlin, TypeScript, Python
 
 I build the unglamorous half: the part that has to keep working when a
 dependency is down, a process dies mid-write, or two people click the same
-button at once.
+button at once. Nobody notices that work until it fails, which is most of why
+I like it — done properly, it stays invisible.
 
-Most of what I work on runs in production and cannot be published. These are
-sanitised or rebuilt versions, each one runnable in a single command.
+I work remotely from Brazil, and have for years. Most of what I build runs in
+production and cannot be published; what follows is sanitised or rebuilt, and
+every one of them runs with a single command.
 
 ---
 
@@ -95,7 +97,14 @@ excluded — that is 19 MB of JavaScript and 2.3 MB of C I do not claim.
 
 ---
 
-**Working on:** Go · TypeScript · Kotlin + Compose · SQLite / Postgres · Docker ·
-Linux · WebRTC · protocol translation · anything with a hard concurrency edge
+**Day to day:** Go · Kotlin + Compose · TypeScript · Python · JavaScript · SQL ·
+Bash · C++ at the JNI boundary · HTML and hand-written CSS · Gradle · Docker ·
+Linux · SQLite and Postgres · WebRTC
 
-**Open to:** remote backend and systems roles.
+**Drawn to:** protocol translation, idempotency, time zones and recurrence,
+terminal internals — anything with a hard concurrency edge or a contract that
+has to hold while something else is failing.
+
+**Open to:** remote backend and systems roles. If you want to see how I think
+before you talk to me, the comments in these repositories say which defect each
+decision came from.
