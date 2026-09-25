@@ -30,6 +30,17 @@ in-process single-flight, a cross-process file lock, and a re-read *inside* the
 lock, which is the layer people skip and the reason a shared credential file
 survives concurrency. Runs with no provider account at all.
 
+**[publication-gate](https://github.com/eranoix/publication-gate)** · Python
+
+Derives a public repository from a private one — and refuses to publish when a
+check fails. Every repository on this profile was produced by it. The gate
+reads the *output* tree rather than the sources, because a minified bundle is a
+second copy of the source and kept a production address alive after the source
+had been corrected; and it reads the *path* as well as the content, because a
+directory name carried a tracker key while every file inside it was clean. The
+example ships leaking on purpose: the first run refuses, the README says which
+line fixes it, and CI asserts the refusal still happens.
+
 **[durable-op-queue](https://github.com/eranoix/durable-op-queue)** · TypeScript
 
 Exactly-once effects against systems you do not control. The hard case is the
@@ -56,7 +67,7 @@ is a confident sentence about a job that never happened.
 
 ### Languages, and where they actually are
 
-Sixteen, counted by GitHub across the five repositories above — not a list of
+Sixteen, counted by GitHub across the six repositories above — not a list of
 things I have read about. Every figure below is what `api.github.com/repos/…/languages`
 returns for a public repo, so it can be checked without taking my word for it.
 The link goes to the code.
@@ -69,7 +80,7 @@ The link goes to the code.
 | **JavaScript** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | Alpine panel, React app, and browser tests driven over CDP |
 | **SQL** | [gateway](https://github.com/eranoix/llm-protocol-gateway/tree/main/src/storage/migrations) · [queue](https://github.com/eranoix/durable-op-queue/blob/main/src/schema.ts) | Schema by hand — including the unique index the queue's guarantee rests on |
 | **HTML / CSS** | [control-plane](https://github.com/eranoix/linux-control-plane) · [forms](https://github.com/eranoix/offshore-competency-forms) | One Alpine template *is* the whole panel; the hand-written CSS is the forms app's print-exact sheets — the panel's is generated Tailwind, and does not count |
-| **Python** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · [forms](https://github.com/eranoix/offshore-competency-forms/blob/main/worker/ocr.py) | Document OCR, a VT session replayer, structure checks |
+| **Python** | [publication-gate](https://github.com/eranoix/publication-gate/tree/main/lib) · [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · [forms](https://github.com/eranoix/offshore-competency-forms/blob/main/worker/ocr.py) | The publication pipeline and its gates; document OCR; a VT session replayer |
 | **C++** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/android/terminal-engine/src/main/cpp) | JNI bridge from Kotlin into a native VT parser |
 | **Shell** | [control-plane](https://github.com/eranoix/linux-control-plane/tree/main/scripts) · gateway · forms | 40 build, release and test harnesses; a credential backup under `flock` |
 
