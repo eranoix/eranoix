@@ -13,57 +13,109 @@ every one of them runs with a single command.
 
 **[linux-control-plane](https://github.com/eranoix/linux-control-plane)** · Go, Kotlin · ~215k lines, ~300k with tests
 
-A single static binary that replaces SSH, a terminal multiplexer, `docker`,
-`crontab` and `journalctl` with one page — plus a native Android client with
-its own VT terminal engine. Terminal sessions survive the server process
-restarting, and render per client, so a phone looking in does not shrink the
-desktop. The public demo runs the real binary behind a deny-by-default gate at
-the single point every request passes through.
+This is the one I use every day. It administers my own server, and I built it
+because administering a machine meant keeping a dozen tools in my head and an
+SSH session open on each of them — `docker` here, `crontab` there, `journalctl`
+somewhere else, and a folder of shell scripts I had to remember the arguments
+to. Now it is one page, and one file to deploy: the whole front end is compiled
+into the binary.
+
+The part I am most attached to is the terminal. Sessions outlive the process
+that serves them, so restarting the control plane does not kill a running job,
+and reattaching replays the live screen instead of a blank one. Rendering is
+per client — I kept opening the panel on my phone while a build ran on the
+desktop, and the session kept collapsing to the phone's width. Two viewers of
+the same session now each get output composed for their own screen.
+
+The Android client is native, not a web view, with its own VT parser driving a
+Compose renderer. That was the hardest single thing here, and the most fun.
 
 ```
 docker compose up   →   localhost:8765
 ```
 
-**[llm-protocol-gateway](https://github.com/eranoix/llm-protocol-gateway)** · TypeScript
+**[llm-protocol-gateway](https://github.com/eranoix/llm-protocol-gateway)** · TypeScript · SQL
 
-One endpoint, two protocols: OpenAI and Anthropic shapes translated in both
-directions, streaming included. The part worth reading is the token refresh —
-in-process single-flight, a cross-process file lock, and a re-read *inside* the
-lock, which is the layer people skip and the reason a shared credential file
-survives concurrency. Runs with no provider account at all.
+One endpoint, two protocols: OpenAI and Anthropic request shapes translated in
+both directions, streaming and tool calls included. I wrote it because I had
+tools that spoke one dialect and a provider that spoke the other, and I did not
+want to modify every tool.
+
+It runs on my own machine and has for months. The part worth reading is the
+token refresh: in-process single-flight, a cross-process file lock, and a
+re-read of the file *inside* that lock. The re-read is the layer people skip,
+and it is the reason a credential file shared between processes survives
+concurrency instead of being clobbered by whichever refresh finished last.
+
+Runs with no provider account at all — `MOCK_UPSTREAM=1` and the whole path,
+locking included, exercises against a canned reply.
 
 **[publication-gate](https://github.com/eranoix/publication-gate)** · Python
 
-Derives a public repository from a private one — and refuses to publish when a
-check fails. Every repository on this profile was produced by it. The gate
-reads the *output* tree rather than the sources, because a minified bundle is a
-second copy of the source and kept a production address alive after the source
-had been corrected; and it reads the *path* as well as the content, because a
-directory name carried a tracker key while every file inside it was clean. The
-example ships leaking on purpose: the first run refuses, the README says which
-line fixes it, and CI asserts the refusal still happens.
+Every repository on this profile was produced by this one. I wrote it because I
+had eleven private repositories full of work I wanted to show and could not:
+production addresses, e-mail, client names, a phone number. Copying and running
+`sed` works once; the second time, the private repo has moved on and you
+re-sanitise from memory, and that is where things leak.
 
-**[offshore-competency-forms](https://github.com/eranoix/offshore-competency-forms)** · React, Vite
+So it derives the public copy instead — and **refuses to publish** when a check
+fails. Each gate exists because something got through: it reads the output tree
+rather than the sources, because a minified bundle is a second copy that kept a
+production address alive after the source was fixed; and it reads the file
+*path*, because a directory name carried a tracker key while every file inside
+it was clean.
 
-Competency paperwork with retrieval-augmented drafting under a strict contract:
-one mode takes your writing voice and *no* facts from the retrieved passages,
-the other may state nothing that is not in them. The failure worth preventing
-is a confident sentence about a job that never happened.
+The example ships leaking on purpose. The first run refuses, the README says
+which line fixes it, and CI asserts that the refusal still happens — a tool
+whose value is saying no has one interesting failure mode, which is going quiet.
+
+**[offshore-competency-forms](https://github.com/eranoix/offshore-competency-forms)** · JavaScript, CSS, Python
+
+Competency paperwork, filled and signed offshore. The constraint that shaped
+everything is that it is used at sea, where the connection drops and does not
+come back for a while: it installs as a PWA and runs from a single file with no
+network at all.
+
+The drafting is retrieval-augmented under a contract I care about. One mode
+borrows your writing voice and **no** facts from the retrieved passages; the
+other may state nothing that is not in them. The failure worth preventing is a
+fluent, confident sentence about a job that never happened — in paperwork that
+someone signs.
+
+Print fidelity is arithmetic rather than eyeballing, and the checks read the
+`.docx` that comes out instead of the screen that drew it.
 
 **[durable-op-queue](https://github.com/eranoix/durable-op-queue)** · TypeScript
 
-Exactly-once effects against systems you do not control. The hard case is the
-window between *the provider applied the change* and *our row says so*: crash
-there and a retry either charges twice or loses the work. So handlers must
-answer whether **they** made the change or found it already done, and the queue
+Exactly-once effects against systems you do not control — charge a card, create
+a remote folder, send a statement.
+
+The system this comes from runs in production and is not mine to publish, so
+this is a smaller rebuild of the same problem, written from scratch. That is
+also why it is small: it is the argument, not the product.
+
+The hard case is the window between *the provider applied the change* and *our
+row says so*. A process that dies in there leaves a completed effect our records
+believe is still owed; retry and you charge twice, skip and you lose the work
+silently. No amount of care in the calling code fixes it, because the calling
+code is what died. So handlers have to answer a question the queue cannot answer
+for them — did **I** make this change, or was it already there — and the queue
 records the difference.
 
 **[scheduling-engine](https://github.com/eranoix/scheduling-engine)** · TypeScript
 
-Availability rules, recurrence and conflict-free booking. Days are not always
-24 hours long, the 31st of a 30-day month is skipped rather than clamped, and
-availability is advice while the write is the authority — the conflict check
-lives inside the transaction, not in the code that ran a moment earlier.
+Availability rules, recurrence, and booking that cannot double-book. Same
+origin as the queue above: rebuilt small, from a system I cannot publish.
+
+Most of the work is in the places where calendars lie. Days are not always 24
+hours long, so a weekly appointment at 09:00 has to stay at 09:00 across a
+daylight-saving change rather than drifting an hour. The 31st of a 30-day month
+is skipped, not clamped to the 30th — clamping invents an appointment nobody
+asked for, and it shows up as a stranger in someone's calendar.
+
+And availability is advice while the write is the authority: the conflict check
+runs inside the same transaction as the insert, not in the code that ran a
+moment earlier and believed the slot was free.
 
 
 ---
