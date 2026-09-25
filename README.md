@@ -1,13 +1,19 @@
 ### Backend and systems engineer — Go, Kotlin, TypeScript, Python
 
-I build the unglamorous half: the part that has to keep working when a
-dependency is down, a process dies mid-write, or two people click the same
-button at once. Nobody notices that work until it fails, which is most of why
-I like it — done properly, it stays invisible.
+I like the problems that only appear after something else has already gone
+wrong. The card charged twice because a process died at the wrong second. The
+two people who booked the same slot four seconds apart. The terminal session
+that vanishes because somebody restarted the server it was running on. Most of
+what I have built is some version of making those not happen.
 
-I work remotely from Brazil, and have for years. Most of what I build runs in
-production and cannot be published; what follows is sanitised or rebuilt, and
-every one of them runs with a single command.
+I run my own server, and a fair amount of what I know came from having to fix
+it myself at a bad hour. The first project below started exactly there — I was
+tired of holding four tools in my head to answer one question.
+
+I work remotely from Brazil, and have for years. Nearly everything I build runs
+in production and is not mine to publish, so these are sanitised copies or
+smaller rebuilds of the same problems. Each one runs with a single command, and
+each one starts by saying what it was built for before it says how it works.
 
 ---
 
