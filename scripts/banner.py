@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 """Generates assets/banner.svg from what is actually public on this account.
 
-The status line at the bottom of the banner is not typed by hand. Every run
-asks the GitHub API which repositories are public, which languages GitHub
-counts in them, and which one changed most recently, then redraws the image.
-A scheduled workflow runs it daily and commits the result only if it changed,
-so a new project or a new language shows up without anyone editing anything.
-
-Standard library only: nothing to install, nothing to break.
+Every run asks the GitHub API which repositories are public and which languages
+and frameworks they use, then redraws the image. Standard library only.
 """
 from __future__ import annotations
 
@@ -22,20 +17,16 @@ OWNER = os.environ.get("PROFILE_OWNER", "eranoix")
 NAME = "Arthur Oliveira"
 ROLE = "FULL-STACK ENGINEER"
 TAGLINE = "I care about what users see, and what they never have to see."
-OPEN_TO_WORK = True          # flip to False and the green dot disappears
+OPEN_TO_WORK = True
 
-# The order to highlight things in. It is a preference, not a claim: an item
-# only appears in the banner if the survey below actually finds it in public
-# code. Remove something from every repository and it leaves the banner too.
+# Preference order only: an item appears only if the survey finds it in public code.
 HIGHLIGHT = ["TypeScript", "React", "Next.js", "Go", "Kotlin", "Python", "Tailwind CSS"]
 
-# Frameworks are not languages — GitHub counts .jsx as JavaScript and a Next.js
-# app as TypeScript — so they are read from the dependencies each repository
-# declares in its package.json files.
+# GitHub does not count frameworks as languages, so they are read from the
+# dependencies declared in each repository's package.json files.
 FRAMEWORKS = {"next": "Next.js", "react": "React", "tailwindcss": "Tailwind CSS",
               "vite": "Vite", "hono": "Hono", "express": "Express"}
-# Fixtures and sample apps are not the owner's stack: safe-code-publisher ships a
-# fictional leaking app under example/, and it must not add Express to the list.
+# Fixtures and sample apps are not the owner's stack.
 SKIP_DIRS = ("node_modules/", "example/", "examples/", "fixtures/", "testdata/")
 
 SANS = "Segoe UI,Helvetica Neue,Helvetica,Arial,sans-serif"
@@ -56,9 +47,7 @@ def api(path: str):
 
 def frameworks_in(repo: dict) -> set[str]:
     import base64
-    # A repository created a moment ago has no commits yet, and asking for its
-    # tree answers 409. That once took the whole banner down on the same push
-    # that created six new repositories; an empty repository simply adds nothing.
+    # An empty repository has no tree yet and the API answers 409.
     if repo.get("size", 0) == 0:
         return set()
     try:
@@ -102,8 +91,7 @@ def survey() -> dict:
     present = set(langs) | frameworks
     top = [x for x in HIGHLIGHT if x in present][:5]
     return {"projects": len(repos), "languages": len(langs), "top": top,
-            # Every language GitHub counts, most code first. The banner lists
-            # all of them, so the count on the left and the names below agree.
+            # All of them, most code first, so the count and the listed names agree.
             "all_languages": sorted(langs, key=lambda k: -langs[k]),
             "frameworks": sorted(frameworks),
             "latest": latest["name"], "when": when}
@@ -136,8 +124,7 @@ def hex_grid(height: int) -> str:
     return "".join(out)
 
 
-# The colour GitHub gives each language, so a reader who knows the language bar
-# recognises them at a glance. A language missing here still appears, in grey.
+# GitHub's own language colours. A language missing here still appears, in grey.
 LANG_COLOR = {
     "Go": "#00ADD8", "Go Template": "#00ADD8", "JavaScript": "#f1e05a",
     "TypeScript": "#3178c6", "Kotlin": "#A97BFF", "Python": "#3572A5",
@@ -148,8 +135,7 @@ LANG_COLOR = {
 }
 LEFT, RIGHT = 48, 832
 # Helvetica advance widths (per 1000 units of font size), so every gap between
-# names is the same width. An average character width left holes after short
-# words and crowded long ones.
+# names is the same width.
 _REG = dict(zip(" +-.0123456789", [278, 584, 333, 278] + [556] * 10))
 _REG.update(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", [667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833,
                                                 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611]))
@@ -227,13 +213,11 @@ def render(s: dict) -> str:
     frameworks = set(s["frameworks"])
     strip = []
     if OPEN_TO_WORK:
-        # On the role's own line, right after it: who he is, then whether he is available.
         label = "Open to remote roles"
         role_end = LEFT + len(ROLE) * (12 * 0.6 + 2.5)
         strip.append(f'<circle cx="{role_end + 20:.1f}" cy="{HEAD_Y[0] - 4.5}" r="4" fill="#34d399"/>'
                      + text(round(role_end + 32, 1), HEAD_Y[0], 12.5, "#6ee7b7", label, SANS, 500))
-    # One column per area, like the columns of a spec sheet: the area on top, a
-    # rule, then its languages. The six with the most code are set in bold.
+    # One column per area; the PRIMARY languages with the most code are bold.
     cols = areas(s)
     title_y = STRIP + 34
     for i, (area, names) in enumerate(cols):
