@@ -190,6 +190,11 @@ AREAS = {
 FRAMEWORK_COLOR = {"Next.js": "#e5e7eb", "React": "#61dafb", "Tailwind CSS": "#38bdf8",
                    "Vite": "#bd34fe", "Hono": "#ff5b11", "Express": "#9ca3af"}
 COL_W, ROW = 162, 21
+# Baselines of role, name and tagline. The gap from one line's baseline to the
+# next line's cap height is the same 16px both times (caps are ~0.72 of the size),
+# and the block sits centred on the mark at y=92.
+HEAD_GAP = 16
+HEAD_Y = (60, 60 + HEAD_GAP + round(42 * .72), 60 + HEAD_GAP + round(42 * .72) + HEAD_GAP + round(15 * .72))
 
 
 def areas(s: dict) -> list[tuple[str, list[str]]]:
@@ -222,10 +227,11 @@ def render(s: dict) -> str:
     frameworks = set(s["frameworks"])
     strip = []
     if OPEN_TO_WORK:
+        # On the role's own line, right after it: who he is, then whether he is available.
         label = "Open to remote roles"
-        lx = RIGHT - measure(label, 12.5, 500)
-        strip.append(f'<circle cx="{lx - 12:.1f}" cy="161.5" r="4" fill="#34d399"/>'
-                     + text(round(lx, 1), 166, 12.5, "#6ee7b7", label, SANS, 500))
+        role_end = LEFT + len(ROLE) * (12 * 0.6 + 2.5)
+        strip.append(f'<circle cx="{role_end + 20:.1f}" cy="{HEAD_Y[0] - 4.5}" r="4" fill="#34d399"/>'
+                     + text(round(role_end + 32, 1), HEAD_Y[0], 12.5, "#6ee7b7", label, SANS, 500))
     # One column per area, like the columns of a spec sheet: the area on top, a
     # rule, then its languages. The six with the most code are set in bold.
     cols = areas(s)
@@ -255,10 +261,9 @@ def render(s: dict) -> str:
 <g fill="none" stroke="#164e63" stroke-width="1" mask="url(#gridmask)">{hex_grid(STRIP)}</g>
 <circle cx="740" cy="92" r="78" fill="none" stroke="{CYAN}" stroke-opacity=".16"/>
 <g transform="translate(680 32) scale(1.875)"><path d="{HEX}" fill="{CYAN}" opacity=".45" filter="url(#glow)"/><path d="{HEX}" fill="url(#mk)" mask="url(#cut)"/></g>
-{text(48, 56, 12, CYAN, ROLE, MONO, 500, "2.5")}
-{text(46, 102, 42, INK, NAME, SANS, 700, "-0.5")}
-<rect x="48" y="120" width="56" height="3" rx="1.5" fill="{CYAN}"/>
-{text(48, 152, 15, MUTED, TAGLINE)}
+{text(48, HEAD_Y[0], 12, CYAN, ROLE, MONO, 500, "2.5")}
+{text(46, HEAD_Y[1], 42, INK, NAME, SANS, 700, "-0.5")}
+{text(48, HEAD_Y[2], 15, MUTED, TAGLINE)}
 <path d="M0 {STRIP} H880 V{H-10} a10 10 0 0 1 -10 10 H10 a10 10 0 0 1 -10 -10 Z" fill="#030b17"/>
 <line x1="0" y1="{STRIP}" x2="880" y2="{STRIP}" stroke="#123040"/>
 {"".join(strip)}
