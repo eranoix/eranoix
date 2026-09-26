@@ -146,44 +146,101 @@ LANG_COLOR = {
     "C": "#555555", "CMake": "#DA3434", "Makefile": "#427819", "Dockerfile": "#384d54",
     "Gradle": "#02303a", "XML": "#0060ac", "Java": "#b07219", "Lua": "#000080",
 }
-CHAR_W, CHIP_H, GAP, LEFT, RIGHT = 7.2, 24, 8, 48, 832
+LEFT, RIGHT = 48, 832
+# Helvetica advance widths (per 1000 units of font size), so every gap between
+# names is the same width. An average character width left holes after short
+# words and crowded long ones.
+_REG = dict(zip(" +-.0123456789", [278, 584, 333, 278] + [556] * 10))
+_REG.update(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", [667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833,
+                                                722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611]))
+_REG.update(zip("abcdefghijklmnopqrstuvwxyz", [556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833,
+                                                556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500]))
+_BOLD = dict(_REG)
+_BOLD.update(zip("ABJKLS", [722, 722, 556, 722, 611, 667]))
+_BOLD.update(zip("abcdefghijklmnopqrstuvwxyz", [556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889,
+                                                 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500]))
 
 
-def chips(s: dict) -> list[tuple[str, str, bool]]:
-    """(name, dot colour, is_framework): every language, most code first, then frameworks."""
-    out = [(n, LANG_COLOR.get(n, MUTED), False) for n in s["all_languages"]]
-    return out + [(n, CYAN, True) for n in s["frameworks"]]
+def measure(s: str, size: float, weight: int) -> float:
+    table = _BOLD if weight >= 600 else _REG
+    return sum(table.get(ch, 600) for ch in s) * size / 1000 * 1.03  # 3% for Segoe/Arial drift
 
 
-def layout(items: list[tuple[str, str, bool]], top: int) -> tuple[list[str], int]:
-    """Places chips left to right, wrapping between chips. Returns the SVG and the bottom y."""
-    svg, x, y = [], LEFT, top
-    for name, color, framework in items:
-        w = int(len(name) * CHAR_W + 34)
-        if x + w > RIGHT and x > LEFT:
-            x, y = LEFT, y + CHIP_H + GAP
-        cy = y + CHIP_H / 2
-        dot = (f'<circle cx="{x + 13}" cy="{cy}" r="3.5" fill="none" stroke="{color}" stroke-width="1.5"/>'
-               if framework else
-               f'<circle cx="{x + 13}" cy="{cy}" r="4" fill="{color}" stroke="#e2e8f0" stroke-opacity=".35"/>')
-        svg.append(f'<rect x="{x}" y="{y}" width="{w}" height="{CHIP_H}" rx="{CHIP_H / 2}" '
-                   f'fill="#0b1a2e" stroke="#164e63"/>' + dot
-                   + text(x + 23, cy + 4.2, 12, "#e2e8f0", name, MONO))
-        x += w + GAP
-    return svg, y + CHIP_H
+def dark(hex_color: str) -> bool:
+    r, g, b = (int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 70
+PRIMARY = 6   # the languages with the most code are set larger
+
+
+def hexagon(cx: float, cy: float, r: float) -> str:
+    pts = " ".join(f"{cx + r * c:.1f},{cy + r * s:.1f}" for c, s in
+                   ((1, 0), (.5, .866), (-.5, .866), (-1, 0), (-.5, -.866), (.5, -.866)))
+    return pts
+
+
+def words(s: dict) -> list[tuple[str, str, int, int, bool]]:
+    """(name, colour, size, weight, hollow) in reading order.
+
+    Size carries the one thing the old counters said: where most of the code is.
+    The biggest languages come first and larger, the rest follow smaller, and
+    frameworks close the list with a hollow marker, since they are not languages.
+    """
+    out = []
+    for i, n in enumerate(s["all_languages"]):
+        big = i < PRIMARY
+        out.append((n, LANG_COLOR.get(n, MUTED), 17 if big else 14, 700 if big else 400, False))
+    order = [f for f in HIGHLIGHT if f in s["frameworks"]] + [f for f in s["frameworks"] if f not in HIGHLIGHT]
+    out += [(n, CYAN, 14, 400, True) for n in order]
+    return out
+
+
+def layout(items, top: int, reserve_first: float) -> tuple[list[str], int]:
+    """Sets the words like text: left aligned, wrapping between words. Frameworks start a new line."""
+    svg, x, line_top, line_h = [], LEFT, top, 0
+    right = RIGHT - reserve_first
+    prev_hollow = None
+    rows = [[]]
+    for item in items:
+        name, color, size, weight, hollow = item
+        w = 16 + measure(name, size, weight)
+        new_group = prev_hollow is not None and hollow != prev_hollow
+        if rows[-1] and (new_group or x + w > right):
+            rows.append([]); x = LEFT; right = RIGHT
+        rows[-1].append((item, x))
+        x += w + 20
+        prev_hollow = hollow
+    y = top
+    for row in rows:
+        h = max(i[2] for i, _ in row) + 12
+        base = y + h - 8
+        for (name, color, size, weight, hollow), x in row:
+            cy = base - size * 0.34
+            r = 4.2 if size > 14 else 3.6
+            if hollow:
+                mark = f'<polygon points="{hexagon(x + 5, cy, r)}" fill="none" stroke="{color}" stroke-width="1.4"/>'
+            else:
+                ring = ".75" if dark(color) else ".25"
+                mark = (f'<polygon points="{hexagon(x + 5, cy, r)}" fill="{color}" '
+                        f'stroke="#e2e8f0" stroke-opacity="{ring}" stroke-width=".9"/>')
+            ink = INK if size > 14 else "#cbd5e1"
+            svg.append(mark + text(x + 16, base, size, ink, name, SANS, weight))
+        y += h
+    return svg, y
 
 
 def render(s: dict) -> str:
     STRIP = 182
-    strip = [text(LEFT, STRIP + 30, 10, MUTED, "STACK", MONO, 500, "2")]
+    strip = []
+    reserve = 0
     if OPEN_TO_WORK:
-        label = "open to remote roles"
-        lx = RIGHT - int(len(label) * CHAR_W)
-        strip.append(f'<circle cx="{lx - 12}" cy="{STRIP + 26}" r="3.5" fill="#34d399"/>'
-                     + text(lx, STRIP + 30, 12, "#a7f3d0", label, MONO))
-    pills, bottom = layout(chips(s), STRIP + 44)
-    strip += pills
-    H = bottom + 22
+        label = "Open to remote roles"
+        lx = RIGHT - measure(label, 13, 500)
+        reserve = RIGHT - lx + 36
+        strip.append(f'<circle cx="{lx - 12:.1f}" cy="{STRIP + 30}" r="4" fill="#34d399"/>'
+                     + text(round(lx, 1), STRIP + 34.5, 13, "#6ee7b7", label, SANS, 500))
+    marks, bottom = layout(words(s), STRIP + 14, reserve)
+    strip += marks
+    H = bottom + 18
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 {H}" width="880" height="{H}" role="img" aria-label="{esc(NAME)}, full-stack engineer">
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{NAVY}"/><stop offset="1" stop-color="{NAVY2}"/></linearGradient>
