@@ -178,69 +178,70 @@ def hexagon(cx: float, cy: float, r: float) -> str:
     return pts
 
 
-def words(s: dict) -> list[tuple[str, str, int, int, bool]]:
-    """(name, colour, size, weight, hollow) in reading order.
+# Where each language goes. A language GitHub starts counting that is not listed
+# here still shows up, under Tooling, so the banner never hides part of the stack.
+AREAS = {
+    "Web": ["TypeScript", "JavaScript", "HTML", "CSS", "React", "Next.js", "Tailwind CSS", "Vite"],
+    "Backend": ["Go", "Go Template", "Python", "Hono", "Express"],
+    "Mobile": ["Kotlin", "Gradle", "XML", "Java", "Swift"],
+    "Data": ["SQL", "PLpgSQL"],
+    "Tooling": ["Shell", "Dockerfile", "Makefile", "PowerShell", "CMake", "Batchfile", "C++", "C"],
+}
+FRAMEWORK_COLOR = {"Next.js": "#e5e7eb", "React": "#61dafb", "Tailwind CSS": "#38bdf8",
+                   "Vite": "#bd34fe", "Hono": "#ff5b11", "Express": "#9ca3af"}
+COL_W, ROW = 162, 21
 
-    Size carries the one thing the old counters said: where most of the code is.
-    The biggest languages come first and larger, the rest follow smaller, and
-    frameworks close the list with a hollow marker, since they are not languages.
-    """
+
+def areas(s: dict) -> list[tuple[str, list[str]]]:
+    """Every language and framework found, placed in its area, in the area's own order."""
+    found = list(s["all_languages"]) + list(s["frameworks"])
+    placed = {n for names in AREAS.values() for n in names}
     out = []
-    for i, n in enumerate(s["all_languages"]):
-        big = i < PRIMARY
-        out.append((n, LANG_COLOR.get(n, MUTED), 17 if big else 14, 700 if big else 400, False))
-    order = [f for f in HIGHLIGHT if f in s["frameworks"]] + [f for f in s["frameworks"] if f not in HIGHLIGHT]
-    out += [(n, CYAN, 14, 400, True) for n in order]
+    for area, names in AREAS.items():
+        members = [n for n in names if n in found]
+        if area == "Tooling":
+            members += [n for n in found if n not in placed]
+        if members:
+            out.append((area, members))
     return out
 
 
-def layout(items, top: int, reserve_first: float) -> tuple[list[str], int]:
-    """Sets the words like text: left aligned, wrapping between words. Frameworks start a new line."""
-    svg, x, line_top, line_h = [], LEFT, top, 0
-    right = RIGHT - reserve_first
-    prev_hollow = None
-    rows = [[]]
-    for item in items:
-        name, color, size, weight, hollow = item
-        w = 16 + measure(name, size, weight)
-        new_group = prev_hollow is not None and hollow != prev_hollow
-        if rows[-1] and (new_group or x + w > right):
-            rows.append([]); x = LEFT; right = RIGHT
-        rows[-1].append((item, x))
-        x += w + 20
-        prev_hollow = hollow
-    y = top
-    for row in rows:
-        h = max(i[2] for i, _ in row) + 12
-        base = y + h - 8
-        for (name, color, size, weight, hollow), x in row:
-            cy = base - size * 0.34
-            r = 4.2 if size > 14 else 3.6
-            if hollow:
-                mark = f'<polygon points="{hexagon(x + 5, cy, r)}" fill="none" stroke="{color}" stroke-width="1.4"/>'
-            else:
-                ring = ".75" if dark(color) else ".25"
-                mark = (f'<polygon points="{hexagon(x + 5, cy, r)}" fill="{color}" '
-                        f'stroke="#e2e8f0" stroke-opacity="{ring}" stroke-width=".9"/>')
-            ink = INK if size > 14 else "#cbd5e1"
-            svg.append(mark + text(x + 16, base, size, ink, name, SANS, weight))
-        y += h
-    return svg, y
+def mark(name: str, framework: bool, cx: float, cy: float) -> str:
+    if framework:
+        c = FRAMEWORK_COLOR.get(name, CYAN)
+        return f'<polygon points="{hexagon(cx, cy, 4.2)}" fill="none" stroke="{c}" stroke-width="1.4"/>'
+    c = LANG_COLOR.get(name, MUTED)
+    ring = ".75" if dark(c) else ".3"
+    return (f'<polygon points="{hexagon(cx, cy, 4.2)}" fill="{c}" stroke="#e2e8f0" '
+            f'stroke-opacity="{ring}" stroke-width=".9"/>')
 
 
 def render(s: dict) -> str:
     STRIP = 182
+    top = set(s["all_languages"][:PRIMARY])
+    frameworks = set(s["frameworks"])
     strip = []
-    reserve = 0
     if OPEN_TO_WORK:
         label = "Open to remote roles"
-        lx = RIGHT - measure(label, 13, 500)
-        reserve = RIGHT - lx + 36
-        strip.append(f'<circle cx="{lx - 12:.1f}" cy="{STRIP + 30}" r="4" fill="#34d399"/>'
-                     + text(round(lx, 1), STRIP + 34.5, 13, "#6ee7b7", label, SANS, 500))
-    marks, bottom = layout(words(s), STRIP + 14, reserve)
-    strip += marks
-    H = bottom + 18
+        lx = RIGHT - measure(label, 12.5, 500)
+        strip.append(f'<circle cx="{lx - 12:.1f}" cy="161.5" r="4" fill="#34d399"/>'
+                     + text(round(lx, 1), 166, 12.5, "#6ee7b7", label, SANS, 500))
+    # One column per area, like the columns of a spec sheet: the area on top, a
+    # rule, then its languages. The six with the most code are set in bold.
+    cols = areas(s)
+    title_y = STRIP + 34
+    for i, (area, names) in enumerate(cols):
+        x = LEFT + i * COL_W
+        strip.append(text(x, title_y, 13, CYAN, area, SANS, 700))
+        strip.append(f'<line x1="{x}" y1="{title_y + 10}" x2="{x + COL_W - 26}" y2="{title_y + 10}" stroke="#123040"/>')
+        for j, n in enumerate(names):
+            y = title_y + 32 + j * ROW
+            big = n in top
+            strip.append(mark(n, n in frameworks, x + 4, y - 4.5)
+                         + text(x + 15, y, 13, INK if big else "#cbd5e1", n, SANS, 600 if big else 400))
+    tallest = max((len(names) for _, names in cols), default=0)
+    bottom = title_y + 32 + max(0, tallest - 1) * ROW
+    H = bottom + 26
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 {H}" width="880" height="{H}" role="img" aria-label="{esc(NAME)}, full-stack engineer">
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{NAVY}"/><stop offset="1" stop-color="{NAVY2}"/></linearGradient>
