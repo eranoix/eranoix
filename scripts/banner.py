@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import urllib.error
 import urllib.request
 from datetime import datetime
 
@@ -55,7 +56,17 @@ def api(path: str):
 
 def frameworks_in(repo: dict) -> set[str]:
     import base64
-    tree = api(f"/repos/{OWNER}/{repo['name']}/git/trees/{repo['default_branch']}?recursive=1")
+    # A repository created a moment ago has no commits yet, and asking for its
+    # tree answers 409. That once took the whole banner down on the same push
+    # that created six new repositories; an empty repository simply adds nothing.
+    if repo.get("size", 0) == 0:
+        return set()
+    try:
+        tree = api(f"/repos/{OWNER}/{repo['name']}/git/trees/{repo['default_branch']}?recursive=1")
+    except urllib.error.HTTPError as e:
+        if e.code in (404, 409):
+            return set()
+        raise
     found: set[str] = set()
     for node in tree.get("tree", []):
         path = node["path"]
@@ -91,6 +102,9 @@ def survey() -> dict:
     present = set(langs) | frameworks
     top = [x for x in HIGHLIGHT if x in present][:5]
     return {"projects": len(repos), "languages": len(langs), "top": top,
+            # Every language GitHub counts, most code first. The banner lists
+            # all of them, so the count on the left and the names below agree.
+            "all_languages": sorted(langs, key=lambda k: -langs[k]),
             "frameworks": sorted(frameworks),
             "latest": latest["name"], "when": when}
 
@@ -122,28 +136,54 @@ def hex_grid(height: int) -> str:
     return "".join(out)
 
 
-def status_items(s: dict) -> list[tuple[str, str]]:
-    items = []
-    if OPEN_TO_WORK:
-        items.append(("#34d399", "open to remote roles"))
-    items += [(CYAN, f"{s['projects']} projects"),
-              (CYAN, f"{s['languages']} languages"),
-              (CYAN, " · ".join(s["top"])),
-              (CYAN, f"latest: {s['latest']}, {s['when']}")]
-    # Monospace at 12px is ~7.2px a character. If the line would overflow,
-    # drop from the end rather than squeeze — a clipped status reads as broken.
-    while sum(len(t) * 7.2 + 34 for _, t in items) > 800 and len(items) > 2:
-        items.pop()
-    return items
+# The colour GitHub gives each language, so a reader who knows the language bar
+# recognises them at a glance. A language missing here still appears, in grey.
+LANG_COLOR = {
+    "Go": "#00ADD8", "Go Template": "#00ADD8", "JavaScript": "#f1e05a",
+    "TypeScript": "#3178c6", "Kotlin": "#A97BFF", "Python": "#3572A5",
+    "HTML": "#e34c26", "CSS": "#663399", "Shell": "#89e051", "PowerShell": "#012456",
+    "Batchfile": "#C1F12E", "SQL": "#e38c00", "PLpgSQL": "#336790", "C++": "#f34b7d",
+    "C": "#555555", "CMake": "#DA3434", "Makefile": "#427819", "Dockerfile": "#384d54",
+    "Gradle": "#02303a", "XML": "#0060ac", "Java": "#b07219", "Lua": "#000080",
+}
+CHAR_W, CHIP_H, GAP, LEFT, RIGHT = 7.2, 24, 8, 48, 832
+
+
+def chips(s: dict) -> list[tuple[str, str, bool]]:
+    """(name, dot colour, is_framework): every language, most code first, then frameworks."""
+    out = [(n, LANG_COLOR.get(n, MUTED), False) for n in s["all_languages"]]
+    return out + [(n, CYAN, True) for n in s["frameworks"]]
+
+
+def layout(items: list[tuple[str, str, bool]], top: int) -> tuple[list[str], int]:
+    """Places chips left to right, wrapping between chips. Returns the SVG and the bottom y."""
+    svg, x, y = [], LEFT, top
+    for name, color, framework in items:
+        w = int(len(name) * CHAR_W + 34)
+        if x + w > RIGHT and x > LEFT:
+            x, y = LEFT, y + CHIP_H + GAP
+        cy = y + CHIP_H / 2
+        dot = (f'<circle cx="{x + 13}" cy="{cy}" r="3.5" fill="none" stroke="{color}" stroke-width="1.5"/>'
+               if framework else
+               f'<circle cx="{x + 13}" cy="{cy}" r="4" fill="{color}" stroke="#e2e8f0" stroke-opacity=".35"/>')
+        svg.append(f'<rect x="{x}" y="{y}" width="{w}" height="{CHIP_H}" rx="{CHIP_H / 2}" '
+                   f'fill="#0b1a2e" stroke="#164e63"/>' + dot
+                   + text(x + 23, cy + 4.2, 12, "#e2e8f0", name, MONO))
+        x += w + GAP
+    return svg, y + CHIP_H
 
 
 def render(s: dict) -> str:
-    H, STRIP = 222, 182
-    x, strip = 48, []
-    for color, t in status_items(s):
-        strip.append(f'<circle cx="{x}" cy="202" r="3.5" fill="{color}"/>'
-                     + text(x + 12, 206, 12, "#cbd5e1", t, MONO))
-        x += int(len(t) * 7.2 + 34)
+    STRIP = 182
+    strip = [text(LEFT, STRIP + 30, 10, MUTED, "STACK", MONO, 500, "2")]
+    if OPEN_TO_WORK:
+        label = "open to remote roles"
+        lx = RIGHT - int(len(label) * CHAR_W)
+        strip.append(f'<circle cx="{lx - 12}" cy="{STRIP + 26}" r="3.5" fill="#34d399"/>'
+                     + text(lx, STRIP + 30, 12, "#a7f3d0", label, MONO))
+    pills, bottom = layout(chips(s), STRIP + 44)
+    strip += pills
+    H = bottom + 22
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 {H}" width="880" height="{H}" role="img" aria-label="{esc(NAME)}, full-stack engineer">
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{NAVY}"/><stop offset="1" stop-color="{NAVY2}"/></linearGradient>
