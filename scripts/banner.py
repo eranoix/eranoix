@@ -19,14 +19,10 @@ ROLE = "FULL-STACK ENGINEER"
 TAGLINE = "I care about what users see, and what they never have to see."
 OPEN_TO_WORK = True
 
-# Preference order only: an item appears only if the survey finds it in public code.
 HIGHLIGHT = ["TypeScript", "React", "Next.js", "Go", "Kotlin", "Python", "Tailwind CSS"]
 
-# GitHub does not count frameworks as languages, so they are read from the
-# dependencies declared in each repository's package.json files.
 FRAMEWORKS = {"next": "Next.js", "react": "React", "tailwindcss": "Tailwind CSS",
               "vite": "Vite", "hono": "Hono", "express": "Express"}
-# Fixtures and sample apps are not the owner's stack.
 SKIP_DIRS = ("node_modules/", "example/", "examples/", "fixtures/", "testdata/")
 
 SANS = "Segoe UI,Helvetica Neue,Helvetica,Arial,sans-serif"
@@ -47,7 +43,6 @@ def api(path: str):
 
 def frameworks_in(repo: dict) -> set[str]:
     import base64
-    # An empty repository has no tree yet and the API answers 409.
     if repo.get("size", 0) == 0:
         return set()
     try:
@@ -76,8 +71,6 @@ def survey() -> dict:
              if not r["fork"] and not r["archived"] and not r["private"]
              and r["name"].lower() != OWNER.lower()]
     if not repos:
-        # An empty answer is far more likely a broken request than an empty
-        # account. Failing keeps yesterday's banner instead of publishing zeros.
         sys.exit("no public repositories returned — refusing to draw an empty banner")
     langs: dict[str, int] = {}
     for r in repos:
@@ -91,7 +84,6 @@ def survey() -> dict:
     present = set(langs) | frameworks
     top = [x for x in HIGHLIGHT if x in present][:5]
     return {"projects": len(repos), "languages": len(langs), "top": top,
-            # All of them, most code first, so the count and the listed names agree.
             "all_languages": sorted(langs, key=lambda k: -langs[k]),
             "frameworks": sorted(frameworks),
             "latest": latest["name"], "when": when}
@@ -124,7 +116,6 @@ def hex_grid(height: int) -> str:
     return "".join(out)
 
 
-# GitHub's own language colours. A language missing here still appears, in grey.
 LANG_COLOR = {
     "Go": "#00ADD8", "Go Template": "#00ADD8", "JavaScript": "#f1e05a",
     "TypeScript": "#3178c6", "Kotlin": "#A97BFF", "Python": "#3572A5",
@@ -134,8 +125,6 @@ LANG_COLOR = {
     "Gradle": "#02303a", "XML": "#0060ac", "Java": "#b07219", "Lua": "#000080",
 }
 LEFT, RIGHT = 48, 832
-# Helvetica advance widths (per 1000 units of font size), so every gap between
-# names is the same width.
 _REG = dict(zip(" +-.0123456789", [278, 584, 333, 278] + [556] * 10))
 _REG.update(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", [667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833,
                                                 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611]))
@@ -149,13 +138,13 @@ _BOLD.update(zip("abcdefghijklmnopqrstuvwxyz", [556, 611, 556, 611, 556, 333, 61
 
 def measure(s: str, size: float, weight: int) -> float:
     table = _BOLD if weight >= 600 else _REG
-    return sum(table.get(ch, 600) for ch in s) * size / 1000 * 1.03  # 3% for Segoe/Arial drift
+    return sum(table.get(ch, 600) for ch in s) * size / 1000 * 1.03
 
 
 def dark(hex_color: str) -> bool:
     r, g, b = (int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
     return 0.2126 * r + 0.7152 * g + 0.0722 * b < 70
-PRIMARY = 6   # the languages with the most code are set larger
+PRIMARY = 6
 
 
 def hexagon(cx: float, cy: float, r: float) -> str:
@@ -164,8 +153,6 @@ def hexagon(cx: float, cy: float, r: float) -> str:
     return pts
 
 
-# Where each language goes. A language GitHub starts counting that is not listed
-# here still shows up, under Tooling, so the banner never hides part of the stack.
 AREAS = {
     "Web": ["TypeScript", "JavaScript", "HTML", "CSS", "React", "Next.js", "Tailwind CSS", "Vite"],
     "Backend": ["Go", "Go Template", "Python", "Hono", "Express"],
@@ -176,9 +163,6 @@ AREAS = {
 FRAMEWORK_COLOR = {"Next.js": "#e5e7eb", "React": "#61dafb", "Tailwind CSS": "#38bdf8",
                    "Vite": "#bd34fe", "Hono": "#ff5b11", "Express": "#9ca3af"}
 COL_W, ROW = 162, 21
-# Baselines of role, name and tagline. The gap from one line's baseline to the
-# next line's cap height is the same 16px both times (caps are ~0.72 of the size),
-# and the block sits centred on the mark at y=92.
 HEAD_GAP = 16
 HEAD_Y = (60, 60 + HEAD_GAP + round(42 * .72), 60 + HEAD_GAP + round(42 * .72) + HEAD_GAP + round(15 * .72))
 
@@ -217,7 +201,6 @@ def render(s: dict) -> str:
         role_end = LEFT + len(ROLE) * (12 * 0.6 + 2.5)
         strip.append(f'<circle cx="{role_end + 20:.1f}" cy="{HEAD_Y[0] - 4.5}" r="4" fill="#34d399"/>'
                      + text(round(role_end + 32, 1), HEAD_Y[0], 12.5, "#6ee7b7", label, SANS, 500))
-    # One column per area; the PRIMARY languages with the most code are bold.
     cols = areas(s)
     title_y = STRIP + 34
     for i, (area, names) in enumerate(cols):
