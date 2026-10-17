@@ -198,22 +198,6 @@ Each receipt already read: who was paid, how much and when, with a suggested fol
 Nothing is moved, deleted or paid unless a person says so. A duplicate is proven byte by byte before it goes, and every change to the drive is safe to retry.
 
 </td>
-<td width="50%" valign="top">
-
-**[consultant-workspace](https://github.com/eranoix/consultant-workspace)**<br>
-<sub>Next.js · React · TypeScript · SQL</sub>
-
-**Turns a consultant's meetings and emails into tasks she approves, with a task board, a weekly timesheet and alerts in one place.**
-
-**Why I built it.** I built it for a consultant whose notes, emails and tasks lived in four places, and whose timesheet was rebuilt from memory every Friday night.
-
-<sub>**WHAT YOU SEE**</sub><br>
-Meetings and emails become short summaries with suggested tasks. She approves the right ones, drags her week into a timesheet and copies it to her calendar in one click.
-
-<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
-Nothing reaches the board without her approval. Every scheduled job reports that it is alive, and a second job watches the one that watches the others.
-
-</td>
 </tr>
 </table>
 
