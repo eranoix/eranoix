@@ -98,24 +98,6 @@ The database itself refuses to record the same action twice. It's a small, open 
 </td>
 <td width="50%" valign="top">
 
-**[clinic-booking-app](https://github.com/eranoix/clinic-booking-app)**<br>
-<sub>Next.js · React · TypeScript · SQL</sub>
-
-**Online booking for a clinic, with a page for patients and a front desk for staff.**
-
-**Why I built it.** Two people book the same time seconds apart, and someone ends up making an awkward phone call.
-
-<sub>**WHAT YOU SEE**</sub><br>
-Patients pick a time and can change or cancel it from a link. Staff see the day's diary, move appointments and book a whole course of sessions at once.
-
-<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
-A double booking is simply impossible: the check happens at the exact moment of booking. One command runs it all, with invented data.
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
 **[kids-study-app](https://github.com/eranoix/kids-study-app)**<br>
 <sub>Electron · TypeScript · PowerShell</sub>
 
@@ -130,6 +112,8 @@ Each child gets tests for their grade, stories read aloud with every word highli
 Progress is encrypted on the computer, and syncing two computers never makes anyone's progress go backwards.
 
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 
 **[phone-notes-sync](https://github.com/eranoix/phone-notes-sync)**<br>
@@ -146,8 +130,6 @@ A page with all your notes, updating live as you write, edit or delete them on t
 If the connection drops it reconnects on its own, and it never mistakes an edit for a deletion.
 
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 
 **[server-fan-control](https://github.com/eranoix/server-fan-control)**<br>
@@ -164,6 +146,8 @@ A live dashboard with temperatures and fan speeds, and curves you drag into shap
 If a sensor stops answering, or the program itself crashes, the fans go to full speed. It prefers noise to heat.
 
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 
 **[server-config-checker](https://github.com/eranoix/server-config-checker)**<br>
@@ -180,8 +164,6 @@ A short report: green when everything matches, and a clear list of what changed 
 It only reads, never writes. Passwords are compared by name, so their values never leave the server.
 
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 
 **[receipt-organizer](https://github.com/eranoix/receipt-organizer)**<br>
@@ -196,22 +178,6 @@ Each receipt already read: who was paid, how much and when, with a suggested fol
 
 <sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
 Nothing is moved, deleted or paid unless a person says so. A duplicate is proven byte by byte before it goes, and every change to the drive is safe to retry.
-
-</td>
-<td width="50%" valign="top">
-
-**[consultant-workspace](https://github.com/eranoix/consultant-workspace)**<br>
-<sub>Next.js · React · TypeScript · SQL</sub>
-
-**Turns a consultant's meetings and emails into tasks she approves, with a task board, a weekly timesheet and alerts in one place.**
-
-**Why I built it.** I built it for a consultant whose notes, emails and tasks lived in four places, and whose timesheet was rebuilt from memory every Friday night.
-
-<sub>**WHAT YOU SEE**</sub><br>
-Meetings and emails become short summaries with suggested tasks. She approves the right ones, drags her week into a timesheet and copies it to her calendar in one click.
-
-<sub>**WHAT YOU NEVER HAVE TO SEE**</sub><br>
-Nothing reaches the board without her approval. Every scheduled job reports that it is alive, and a second job watches the one that watches the others.
 
 </td>
 </tr>
