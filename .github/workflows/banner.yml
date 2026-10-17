@@ -10,6 +10,8 @@ on:
   push:
     paths:
       - scripts/banner.py
+      - scripts/banner_art/**
+      - scripts/fonts/**
       - .github/workflows/banner.yml
 
 permissions:
@@ -28,6 +30,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      # The words are drawn as outlines from the fonts in scripts/fonts, so the
+      # banner looks the same wherever GitHub shows it.
+      - name: Install fontTools
+        run: pip install fonttools==4.46.0
 
       - name: Redraw from the API
         env:

@@ -1,4 +1,4 @@
-<img src="assets/banner.svg" alt="Arthur Oliveira, full-stack engineer" width="100%">
+<img src="assets/banner.svg" alt="Arthur Oliveira, full stack developer" width="100%">
 
 Hi, I'm Arthur. I'm a full-stack developer, and I work remotely.
 
