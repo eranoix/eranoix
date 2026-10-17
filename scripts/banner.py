@@ -2,20 +2,26 @@
 """Generates assets/banner.svg from what is actually public on this account.
 
 Every run asks the GitHub API which repositories are public and which languages
-and frameworks they use, then redraws the image. Standard library only.
+and frameworks they use, then redraws the image. The artwork that never changes
+(the cubes and the brand symbol) lives in scripts/banner_art/, and every word is
+turned into outlines with the fonts in scripts/fonts/, so the image looks the
+same on any machine. Needs fontTools.
 """
 from __future__ import annotations
 
+import html
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 from datetime import datetime
+from pathlib import Path
 
 OWNER = os.environ.get("PROFILE_OWNER", "eranoix")
 NAME = "Arthur Oliveira"
-ROLE = "FULL-STACK ENGINEER"
+ROLE = "FULL STACK DEVELOPER"
 TAGLINE = "I care about what users see, and what they never have to see."
 OPEN_TO_WORK = True
 
@@ -27,7 +33,14 @@ SKIP_DIRS = ("node_modules/", "example/", "examples/", "fixtures/", "testdata/")
 
 SANS = "Segoe UI,Helvetica Neue,Helvetica,Arial,sans-serif"
 MONO = "SFMono-Regular,Menlo,Consolas,Liberation Mono,monospace"
-NAVY, NAVY2, CYAN, CYAN2, INK, MUTED = "#020617", "#0a1628", "#22d3ee", "#0891b2", "#f8fafc", "#94a3b8"
+NAVY, NAVY2, TEAL, INK, MUTED = "#020617", "#0a1628", "#14b8a6", "#f8fafc", "#94a3b8"
+
+HERE = Path(__file__).resolve().parent
+ART = HERE / "banner_art"
+FONTS = HERE / "fonts"
+SANS_FILES = {"400": "Inter-Regular.ttf", "500": "Inter-Medium.ttf",
+              "600": "Inter-SemiBold.ttf", "700": "Inter-Bold.ttf"}
+MONO_FILE = "RobotoMono-Medium.ttf"
 
 
 def api(path: str):
@@ -99,21 +112,51 @@ def text(x, y, size, color, t, font=SANS, weight=400, spacing=None):
             f'font-size="{size}" font-weight="{weight}"{ls}>{esc(t)}</text>')
 
 
-HEX = "M32 4 L52 15 L56 32 L52 49 L32 60 L12 49 L8 32 L12 15 Z"
+def art(name: str) -> str:
+    return (ART / name).read_text().strip()
 
 
-def hex_grid(height: int) -> str:
-    r, w, out = 14, 14 * 3 ** 0.5, []
-    row = 0
-    while row * r * 1.5 < height + r:
-        col = -1
-        while col * w < 900:
-            cx, cy = col * w + (w / 2 if row % 2 else 0), row * r * 1.5
-            out.append(f'<path d="M{cx:.1f} {cy-r:.1f} L{cx+w/2:.1f} {cy-r/2:.1f} L{cx+w/2:.1f} {cy+r/2:.1f} '
-                       f'L{cx:.1f} {cy+r:.1f} L{cx-w/2:.1f} {cy+r/2:.1f} L{cx-w/2:.1f} {cy-r/2:.1f} Z"/>')
-            col += 1
-        row += 1
-    return "".join(out)
+_FONTS: dict = {}
+
+
+def _font(path: Path):
+    if path not in _FONTS:
+        from fontTools.ttLib import TTFont
+        f = TTFont(path)
+        _FONTS[path] = (f.getBestCmap(), f.getGlyphSet(), f["hmtx"], f["head"].unitsPerEm)
+    return _FONTS[path]
+
+
+def outline(match: re.Match) -> str:
+    """One <text> as glyph outlines: same position, size, colour and tracking."""
+    from fontTools.pens.svgPathPen import SVGPathPen
+    tag = match.group(0)
+
+    def attr(k, default=None):
+        m = re.search(rf'{k}="([^"]+)"', tag)
+        return m.group(1) if m else default
+
+    family = attr("font-family", "")
+    path = FONTS / (MONO_FILE if "mono" in family.lower() else SANS_FILES.get(attr("font-weight", "400"), SANS_FILES["400"]))
+    cmap, glyphs, hmtx, upem = _font(path)
+    size, tracking = float(attr("font-size")), float(attr("letter-spacing", "0"))
+    x, y, scale = float(attr("x")), float(attr("y")), size / upem
+    parts = []
+    for ch in html.unescape(re.search(r">([^<]*)</text>", tag).group(1)):
+        g = cmap.get(ord(ch))
+        if g is None:
+            x += size * 0.3
+            continue
+        pen = SVGPathPen(glyphs)
+        glyphs[g].draw(pen)
+        if pen.getCommands():
+            parts.append(f'<path transform="translate({x:.2f} {y:.2f}) scale({scale:.6f} {-scale:.6f})" d="{pen.getCommands()}"/>')
+        x += hmtx[g][0] * scale + tracking
+    return f'<g fill="{attr("fill", "#000")}">' + "".join(parts) + "</g>"
+
+
+def outlined(svg: str) -> str:
+    return re.sub(r"<text[^>]*>[^<]*</text>", outline, svg)
 
 
 LANG_COLOR = {
@@ -183,7 +226,7 @@ def areas(s: dict) -> list[tuple[str, list[str]]]:
 
 def mark(name: str, framework: bool, cx: float, cy: float) -> str:
     if framework:
-        c = FRAMEWORK_COLOR.get(name, CYAN)
+        c = FRAMEWORK_COLOR.get(name, TEAL)
         return f'<polygon points="{hexagon(cx, cy, 4.2)}" fill="none" stroke="{c}" stroke-width="1.4"/>'
     c = LANG_COLOR.get(name, MUTED)
     ring = ".75" if dark(c) else ".3"
@@ -205,7 +248,7 @@ def render(s: dict) -> str:
     title_y = STRIP + 34
     for i, (area, names) in enumerate(cols):
         x = LEFT + i * COL_W
-        strip.append(text(x, title_y, 13, CYAN, area, SANS, 700))
+        strip.append(text(x, title_y, 13, TEAL, area, SANS, 700))
         strip.append(f'<line x1="{x}" y1="{title_y + 10}" x2="{x + COL_W - 26}" y2="{title_y + 10}" stroke="#123040"/>')
         for j, n in enumerate(names):
             y = title_y + 32 + j * ROW
@@ -215,20 +258,18 @@ def render(s: dict) -> str:
     tallest = max((len(names) for _, names in cols), default=0)
     bottom = title_y + 32 + max(0, tallest - 1) * ROW
     H = bottom + 26
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 {H}" width="880" height="{H}" role="img" aria-label="{esc(NAME)}, full-stack engineer">
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 {H}" width="880" height="{H}" role="img" aria-label="{esc(NAME)}, {ROLE.lower()}">
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{NAVY}"/><stop offset="1" stop-color="{NAVY2}"/></linearGradient>
-<linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset=".55" stop-color="{CYAN}"/><stop offset="1" stop-color="{CYAN2}"/></linearGradient>
 <radialGradient id="fade" cx=".82" cy=".5" r=".6"><stop offset="0" stop-color="white" stop-opacity=".9"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
 <mask id="gridmask"><rect width="880" height="{STRIP}" fill="url(#fade)"/></mask>
-<mask id="cut"><rect width="64" height="64" fill="white"/><rect x="29" y="16" width="6" height="32" rx="3" fill="black"/><path d="M17 20 L27 20 L27 26 L21 30 L15 27 Z" fill="black"/><path d="M47 44 L37 44 L37 38 L43 34 L49 37 Z" fill="black"/></mask>
 <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
 </defs>
 <rect width="880" height="{H}" rx="10" fill="url(#bg)"/>
-<g fill="none" stroke="#164e63" stroke-width="1" mask="url(#gridmask)">{hex_grid(STRIP)}</g>
-<circle cx="740" cy="92" r="78" fill="none" stroke="{CYAN}" stroke-opacity=".16"/>
-<g transform="translate(680 32) scale(1.875)"><path d="{HEX}" fill="{CYAN}" opacity=".45" filter="url(#glow)"/><path d="{HEX}" fill="url(#mk)" mask="url(#cut)"/></g>
-{text(48, HEAD_Y[0], 12, CYAN, ROLE, MONO, 500, "2.5")}
+{art("cubes.svg")}
+<circle cx="740" cy="92" r="78" fill="none" stroke="{TEAL}" stroke-opacity=".16"/>
+{art("symbol.svg")}
+{text(48, HEAD_Y[0], 12, TEAL, ROLE, MONO, 500, "2.5")}
 {text(46, HEAD_Y[1], 42, INK, NAME, SANS, 700, "-0.5")}
 {text(48, HEAD_Y[2], 15, MUTED, TAGLINE)}
 <path d="M0 {STRIP} H880 V{H-10} a10 10 0 0 1 -10 10 H10 a10 10 0 0 1 -10 -10 Z" fill="#030b17"/>
@@ -241,4 +282,4 @@ def render(s: dict) -> str:
 if __name__ == "__main__":
     s = survey()
     print(json.dumps(s), file=sys.stderr)
-    sys.stdout.write(render(s))
+    sys.stdout.write(outlined(render(s)))
